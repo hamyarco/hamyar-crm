@@ -1,0 +1,20 @@
+# secrets
+.env
+
+# the vtiger tree itself: 408 MB of vendor code, ~2000 files encrypted and
+# licence-locked by PersianCRM/PersianGroup. Not ours to redistribute, and it
+# is restored from srv004 (or from backups/) rather than from git.
+html/
+
+# the PCG loader + the domain-locked licence file — same reason
+pcg/
+
+# dumps and archives
+migrate/
+backups/
+*.sql
+*.sql.gz
+*.tar.gz
+
+# build noise
+build.log

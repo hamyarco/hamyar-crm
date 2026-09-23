@@ -1,0 +1,41 @@
+services:
+  db:
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${CRM_DB_NAME}
+      MARIADB_USER: ${CRM_DB_USER}
+      MARIADB_PASSWORD: ${CRM_DB_PASS}
+      MARIADB_ROOT_PASSWORD: ${CRM_DB_ROOT}
+    # what vtiger wants from the server (its installer checks these)
+    command: >-
+      --sql-mode=ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION
+      --innodb-large-prefix=1 --innodb-file-per-table=1
+      --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+      --max-allowed-packet=64M --innodb-buffer-pool-size=512M
+    volumes:
+      - db:/var/lib/mysql
+      - ./db-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+  crm:
+    build: .
+    image: hamyar-crm:8.3
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8081:80"
+    environment:
+      TZ: Asia/Tehran
+    volumes:
+      - ./html:/var/www/html
+      # PersianCRM (PCG) loader + domain-locked licence, kept at the exact path
+      # config.inc.php expects, so the vtiger config needs no edit.
+      - ./pcg:/home/hamyar-crm
+volumes:
+  db:
