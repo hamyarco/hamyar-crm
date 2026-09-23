@@ -66,10 +66,7 @@ sleep 5
 curl -fsS -o /dev/null -H 'Host: crm.hamyar.co' http://127.0.0.1/index.php && echo "    login page renders OK"
 
 echo "==> 7/7 enable the vtiger cron on THIS server"
-cat > /etc/cron.d/hamyar-crm <<'CRON'
-# vtiger scheduled workflows / mail scanner — mirrors what srv004 ran every 10 min
-*/10 * * * * root curl -fsS -m 300 -H 'Host: crm.hamyar.co' http://127.0.0.1/vtigercron.php > /dev/null 2>&1
-CRON
+cp "$HERE/cron.d-hamyar-crm" /etc/cron.d/hamyar-crm
 chmod 644 /etc/cron.d/hamyar-crm
 
 echo

@@ -1,0 +1,6 @@
+# vtiger scheduled workflows / reminders / mail scanner — every 10 min, as srv004 ran it.
+# Run through the PHP CLI inside the container, NOT over http: vtigercron.php only
+# executes when php_sapi_name() is fpm-fcgi or it is a CLI call with SERVER_SOFTWARE set,
+# and this container is apache2handler — over http it answers 200 and silently does nothing.
+SHELL=/bin/bash
+*/10 * * * * root docker exec -u www-data -e SERVER_SOFTWARE=cron -w /var/www/html hamyar-crm-crm-1 php -f vtigercron.php >> /var/log/hamyar-crm-cron.log 2>&1
