@@ -34,6 +34,27 @@ docker compose logs -f crm
 docker compose up -d --build crm      # after touching Dockerfile / php.ini / apache.conf
 ```
 
+## Never upgrade vtiger
+
+The company bought the Persian localisation from a vendor who **encrypted parts of the
+code**, and warned that updating vtiger will break the install. That matches what is on
+disk: ~2000 PCG-encrypted files scattered through `modules/`, `include/` and `layouts/`,
+which no upstream release knows about. So:
+
+- no vtiger version upgrade, no "update" from inside Settings,
+- no `composer update`, no replacing files from a vanilla 8.4 tarball,
+- module changes only through the vendor, or by editing files that are *not* encrypted.
+
+The encrypted files also cannot be re-downloaded from anywhere — the nightly backup below
+is the only copy. Treat it as such.
+
+## Backups
+
+`backup.sh` → `/root/backups/crm/<stamp>/` : `database.sql.gz`, `html.tar.gz` (the whole
+vtiger tree), `deploy.tar.gz` (the PCG loader + licence + this deployment's files),
+`SHA256SUMS`. Last 7 kept, nightly at 01:30 UTC via `/etc/cron.d/hamyar-crm-backup`,
+log in `/var/log/hamyar-crm-backup.log`.
+
 ## The PCG trap
 
 `config.inc.php` lines 2–3 point at `/home/hamyar-crm/pcg-guard.php` (the loader) and
@@ -47,6 +68,14 @@ in any log.
 vtiger renders an empty body unless it believes the request is https, so the vhost sends
 `X-Forwarded-Proto: https` unconditionally. A white page with `Content-Length: 1` means
 that header got lost.
+
+## The cron trap
+
+`vtigercron.php` only does anything when `php_sapi_name()` is `fpm-fcgi` (srv004 was
+php-fpm) or it is a CLI call with `SERVER_SOFTWARE` set. This container is
+`apache2handler`, so calling it over http answers **200 in 18 ms having run nothing**.
+`/etc/cron.d/hamyar-crm` therefore goes through `docker exec … php -f vtigercron.php`,
+logging to `/var/log/hamyar-crm-cron.log`.
 
 ## Cutover
 
