@@ -77,6 +77,14 @@ php-fpm) or it is a CLI call with `SERVER_SOFTWARE` set. This container is
 `/etc/cron.d/hamyar-crm` therefore goes through `docker exec … php -f vtigercron.php`,
 logging to `/var/log/hamyar-crm-cron.log`.
 
+## Developing on this install
+
+`docs/vtiger-development.md` — the vtiger developer guide distilled and checked against
+this install: request routing, module layout, records and the database, event handlers,
+cron, the webservice API, vtlib, templates. It opens with a map of exactly which parts of
+the tree are PCG-encrypted (short version: the vtiger core is stock and safe; the paid
+`*4You` modules and the fa_ir language files are not).
+
 ## Cutover
 
 `cutover.sh` re-dumps srv004, syncs the files, restores, and turns the 10-minute vtiger
