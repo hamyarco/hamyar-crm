@@ -296,3 +296,40 @@ docker exec hamyar-crm-crm-1 php -r '…headers_sent($f,$l)…'   # فایل و 
 ```
 درمان: `ltrim` بایت‌های اضافی ابتدای فایل و حذف فضای بعد از `?>`. این درخت در گیت نیست، پس
 اگر روزی از بکاپ برگردانده شد دوباره همین را چک کنید.
+
+## ذخیرهٔ رکورد «فریز» می‌شد — یک پوشهٔ جامانده از مهاجرت (۲۰۲۶-۰۹-۲۶)
+
+فروشنده‌ها می‌توانستند ببینند و فیلتر کنند، ولی «ذخیره» در لید (و در واقع هر ماژولی) صفحه را
+فریز می‌کرد: پاسخ `200` با بدنهٔ خالی و **بدون** `Location`. رکورد در دیتابیس ذخیره می‌شد، اما
+مرورگر هیچ‌وقت به نمای جزئیات نمی‌رفت، پس کاربر فکر می‌کرد تغییری اعمال نشده.
+
+علت: `modules/PBXManager/` در مهاجرت جا مانده بود (تنها پوشهٔ ماژول که در
+`migrate/crm-files.tar.gz` هست و روی دیسک نبود). شش ردیف در `vtiger_eventhandlers` هنوز به
+`modules/PBXManager/PBXManagerHandler.php` اشاره می‌کنند؛ روی `vtiger.entity.aftersave` این
+`require` فتال می‌داد و اسکریپت درست بعد از نوشتن رکورد و پیش از `header('Location: …')`
+می‌مرد. سطح خطا روی `E_ERROR & ~E_NOTICE` است و خروجی هم بافر می‌شود، برای همین نه در صفحه
+چیزی دیده می‌شد نه در لاگ آپاچی.
+
+تشخیص (بدون رمز کاربر، با یک نشست موقت ادمین در `/tmp/sess_…`):
+```bash
+# auto_prepend_file موقت که در shutdown وضعیت هدرها و آخرین خطا را می‌نویسد
+printf 'php_value auto_prepend_file /tmp/hyprobe.php\n' > /var/www/html/.htaccess   # بعد پاکش کنید!
+docker exec hamyar-crm-crm-1 cat /tmp/hysave.log
+```
+`error_get_last()` مستقیم مسیر فایل گم‌شده را داد.
+
+درمان: پوشه از آرشیو مهاجرت برگردانده شد و مالکیتش `www-data` شد. بعدش ذخیرهٔ لید دوباره
+`302 Location: index.php?module=Leads&view=Detail&record=…` می‌دهد.
+```bash
+tar xzf migrate/crm-files.tar.gz -C /tmp crm.hamyar.co/modules/PBXManager
+cp -a /tmp/crm.hamyar.co/modules/PBXManager /opt/hamyar-crm/html/modules/
+chown -R www-data:www-data /opt/hamyar-crm/html/modules/PBXManager
+```
+اگر روزی خواستید این ماژول را واقعاً حذف کنید، اول شش ردیف
+`vtiger_eventhandlers` با `handler_path like '%PBXManager%'` را `is_active=0` کنید.
+
+**قاعده:** بعد از هر بازگردانی از بکاپ، فهرست پوشه‌های `modules/` را با آرشیو مقایسه کنید:
+```bash
+tar tzf migrate/crm-files.tar.gz | sed -n 's#^crm.hamyar.co/modules/\([^/]*\)/.*#\1#p' | sort -u > /tmp/a
+ls /opt/hamyar-crm/html/modules | sort -u > /tmp/b; comm -23 /tmp/a /tmp/b
+```
