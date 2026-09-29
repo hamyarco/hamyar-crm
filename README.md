@@ -90,3 +90,12 @@ the tree are PCG-encrypted (short version: the vtiger core is stock and safe; th
 `cutover.sh` re-dumps srv004, syncs the files, restores, and turns the 10-minute vtiger
 cron on here (and off there). Everything on this server is overwritten — srv004 stays the
 source of truth until the Cloudflare record moves. See the header of the script.
+
+## Documentation
+
+This project follows the Hamyar documentation standard (`/var/www/hamyar-docs/docs/STANDARD.md`,
+readable at docs.hamyar.co → راهنما): `README.md` + `docs/` with `title`/`type` front matter
+(tutorial · howto · reference · explanation · adr · changelog), docs updated in the same commit as the
+behaviour they describe, a line in the CHANGELOG, an ADR in `docs/adr/` for each real decision, and
+commit bodies that say **why**. Nothing secret in docs or commits. After a push the hub
+(docs.hamyar.co) picks the docs up and sends the owner a Persian note of what changed and why.
