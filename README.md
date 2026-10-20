@@ -1,7 +1,17 @@
 # hamyar-crm — crm.hamyar.co (vtiger CRM 8.4)
 
-Deployment for the company CRM. **This directory is both the repo and the live
-deployment** (`/opt/hamyar-crm` on the Hamyar VPS, 212.38.94.166). Moved here on
+Deployment for the company CRM.
+
+> **Live on the Sotoon VM in Iran (78.109.207.17, `/opt/hamyar-crm`) since 2026-10-19.**
+> - The DB volume, `html/`, `pcg/`, `.env` and the image were copied 1:1. The crons `hamyar-crm` and
+>   `hamyar-crm-backup` now run there.
+> - This copy on the foreign VPS is the git working copy only. Its containers are stopped and fenced
+>   off by an untracked `docker-compose.override.yml`; the data in it is stale.
+> - Tracked-file changes: commit + push here, then `/var/www/hamyar-server/bin/sotoon-deploy.sh crm [--rebuild]`.
+> - vtiger code under `html/` is edited on the VM itself, because it is live data.
+
+Originally: **this directory was both the repo and the live deployment** (`/opt/hamyar-crm` on the
+Hamyar VPS, 212.38.94.166). Moved here on
 2026-09-23 from its own box, `srv004` / `185.112.151.120` (Ubuntu 22.04 + CloudPanel).
 
 ```
